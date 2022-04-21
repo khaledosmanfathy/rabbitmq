@@ -1,0 +1,30 @@
+version: '3.3'
+
+services:
+    #service 1: definition of rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+        - rabbitmq_go_net
+    #service 3: definition of your spring-boot app 
+    orderservice:                        #it is just a name, which will be used only in this file.
+      image: rabbitmq-service               #name of the image after dockerfile executes
+      container_name: rabbitmq-service-app  #name of the container created from docker image
+      build:
+        context: .                          #docker file path (. means root directory)
+        dockerfile: Dockerfile              #docker file name
+      ports:
+        - "9091:9090"                       #docker containter port with your os port
+      restart: always
+      environment:
+        - SPRING_RABBITMQ_HOST=rabbitmq  
+      depends_on:                           #define dependencies of this app
+        - rabbitmq      
+        
